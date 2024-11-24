@@ -1,0 +1,71 @@
+﻿@{
+    ViewData["Title"] = "Home Page";
+}
+<div class="text-center" ng-controller="homeIndexCtrl">
+    <h1>{{message}}</h1>
+        <!-- Phần tử Dropzone -->
+        <button ng-click="uploadFile()">Tải lên danh sách</button>
+    <div id="myDropzone" hidden></div>
+
+    <hr />
+    <div class="row1 bg-content-min justify-content-start mb-2" style="padding-bottom: 0px !important;">
+        <div class="table-responsive  table-fix-scroll-new border">
+            <table class="table table-striped table-hover1  table-custom-new">
+                <thead>
+                    <tr>
+                        <th scope="col">STT</th>
+                        <th scope="col">
+                            Hành động
+                        </th>
+                        <th scope="col">Tên</th>
+                        <th scope="col">Link</th>
+                        <th scope="col">Thời gian thực hiện</th>
+                        <th scope="col">Số lượng</th>
+                        <th scope="col">Thành công</th>
+                        <th scope="col">Thất bại</th>
+                        <th scope="col">Thực hiện</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr ng-repeat="x in Data">
+                        <td>
+                            <span ng-bind="$index+1"></span>
+                        </td>
+                        <td>
+                            <i class="fa-solid fa-delete-left" ng-click="showDeleteModal($event,x)"></i>
+                        </td>
+
+                        <td>
+                            <span ng-bind="x.name"></span>
+                        </td>
+                        <td>
+                            <span ng-bind="x.link"></span>
+                        </td>
+                        <td>
+                            <span ng-bind="x.startTimeStr"></span>
+                        </td>
+                        <td>
+                            <span ng-bind="x.countPersonal"></span>
+                        </td>
+                        <td>
+                            <span ng-bind="x.countSuccess"></span>
+                        </td>
+                        <td>
+                            <span ng-bind="x.countFailure"></span>
+                        </td>
+                        <td>
+                            <button type="button" class="btn btn-success" ng-click="startReg(x)">Thực hiện</button>
+                        </td>
+                    </tr>
+                    <tr ng-show="Data==null || Data.length==0">
+                        <td colspan="12">
+                            Không tìm thấy bản ghi nào
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+<script src="~/scriptsforcontrolelrs/home/index.js" asp-append-version="true"></script>
+
