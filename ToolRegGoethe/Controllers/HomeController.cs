@@ -127,6 +127,11 @@ namespace ToolRegGoethe.Controllers
             {
                 string[] proxyList = new string[]
                 {
+                    "160.187.242.104:57513:vs57513:fNNhNK2",
+                    "160.187.244.141:57513:vs57513:fNNhNK2",
+                    "160.187.242.215:57513:vs57513:fNNhNK2",
+                    "160.187.243.93:57513:vs57513:fNNhNK2",
+                    "160.187.242.103:57513:vs57513:fNNhNK2"
                 };
                 var configInfo = ConfigDao.GetInstance().GetById(reqData.IdStr);
                 var pList = PersonalDao.GetInstance().GetByConfigId(configInfo._id);
@@ -200,12 +205,20 @@ namespace ToolRegGoethe.Controllers
         {
             try
             {
+                string[] proxyList = new string[]
+                {
+                    "160.187.242.104:57513:vs57513:fNNhNK2",
+                    "160.187.244.141:57513:vs57513:fNNhNK2",
+                    "160.187.242.215:57513:vs57513:fNNhNK2",
+                    "160.187.243.93:57513:vs57513:fNNhNK2",
+                    "160.187.242.103:57513:vs57513:fNNhNK2"
+                };
                 var personalInfo = PersonalDao.GetInstance().GetById(reqData.IdStr);
                 var configInfo = ConfigDao.GetInstance().GetById(personalInfo.ConfigId);
 
-                var drivers = new List<IWebDriver>();
+                var d = new RegBussiness().OpenNewChrome(configInfo, personalInfo, proxyList[3]);
 
-                new RegBussiness().Reg(configInfo, personalInfo);
+                new RegBussiness().RegAction(d, configInfo, personalInfo);
 
                 return Json(new
                 {
