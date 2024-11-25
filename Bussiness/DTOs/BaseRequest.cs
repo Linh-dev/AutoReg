@@ -1,4 +1,4 @@
-﻿namespace ToolRegGoethe.DTOs
+﻿namespace Bussiness.DTOs
 {
     public class BaseRequest
     {

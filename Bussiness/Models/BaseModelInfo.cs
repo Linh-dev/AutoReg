@@ -1,8 +1,8 @@
-﻿using MongoDB.Bson;
+﻿using Bussiness.Utilities;
+using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
-using ToolRegGoethe.Utilities;
 
-namespace ToolRegGoethe.Models
+namespace Bussiness.Models
 {
     public class BaseModelInfo
     {

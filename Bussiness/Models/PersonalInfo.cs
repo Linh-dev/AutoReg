@@ -1,7 +1,7 @@
 ﻿using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 
-namespace ToolRegGoethe.Models
+namespace Bussiness.Models
 {
     public class PersonalInfo : BaseModelInfo
     {

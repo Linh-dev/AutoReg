@@ -1,14 +1,12 @@
-﻿using OpenQA.Selenium.Chrome;
+﻿using Bussiness.Models;
+using OpenQA.Selenium;
+using OpenQA.Selenium.Chrome;
 using OpenQA.Selenium.Interactions;
 using OpenQA.Selenium.Support.UI;
-using OpenQA.Selenium;
-using ToolRegGoethe.Dao;
-using ToolRegGoethe.Models;
-using System.Net.WebSockets;
-using WebDriverManager.DriverConfigs.Impl;
 using WebDriverManager;
+using WebDriverManager.DriverConfigs.Impl;
 
-namespace ToolRegGoethe.Business
+namespace Bussiness.Business
 {
     public class RegBussiness
     {

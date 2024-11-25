@@ -1,4 +1,4 @@
-namespace ToolRegGoethe.Models
+namespace Bussiness.Models
 {
     public class ErrorViewModel
     {

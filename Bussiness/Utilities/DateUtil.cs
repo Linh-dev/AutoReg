@@ -1,4 +1,4 @@
-﻿namespace ToolRegGoethe.Utilities
+﻿namespace Bussiness.Utilities
 {
     public static class DateUtil
     {

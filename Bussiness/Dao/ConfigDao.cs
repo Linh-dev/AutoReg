@@ -1,7 +1,6 @@
-﻿using MongoDB.Driver;
-using ToolRegGoethe.Models;
+﻿using Bussiness.Models;
 
-namespace ToolRegGoethe.Dao
+namespace Bussiness.Dao
 {
     public class ConfigDao: BaseDao<ConfigInfo>
     {

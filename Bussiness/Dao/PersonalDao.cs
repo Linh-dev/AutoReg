@@ -1,8 +1,8 @@
-﻿using MongoDB.Bson;
+﻿using Bussiness.Models;
+using MongoDB.Bson;
 using MongoDB.Driver;
-using ToolRegGoethe.Models;
 
-namespace ToolRegGoethe.Dao
+namespace Bussiness.Dao
 {
     public class PersonalDao : BaseDao<PersonalInfo>
     {

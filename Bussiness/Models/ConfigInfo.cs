@@ -1,8 +1,7 @@
-﻿using MongoDB.Bson;
+﻿using Bussiness.Utilities;
 using MongoDB.Bson.Serialization.Attributes;
-using ToolRegGoethe.Utilities;
 
-namespace ToolRegGoethe.Models
+namespace Bussiness.Models
 {
     public class ConfigInfo : BaseModelInfo
     {

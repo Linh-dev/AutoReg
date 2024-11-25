@@ -1,6 +1,6 @@
 ﻿using MongoDB.Driver;
 
-namespace ToolRegGoethe.Dao
+namespace Bussiness.Dao
 {
     public class Database
     {
