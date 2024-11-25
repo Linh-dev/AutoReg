@@ -127,7 +127,6 @@ namespace ToolRegGoethe.Controllers
             {
                 string[] proxyList = new string[]
                 {
-
                 };
                 var configInfo = ConfigDao.GetInstance().GetById(reqData.IdStr);
                 var pList = PersonalDao.GetInstance().GetByConfigId(configInfo._id);
@@ -151,8 +150,6 @@ namespace ToolRegGoethe.Controllers
                     }
                 });
                 #endregion
-
-                new RegBussiness().RegAction(regModelList[0].Driver, configInfo, regModelList[0].Info);
 
                 ////check
                 //var check = true;

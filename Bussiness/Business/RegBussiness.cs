@@ -311,8 +311,6 @@ namespace Bussiness.Business
         {
             try
             {
-                Actions actions = new Actions(driver);
-
                 driver.Navigate().Refresh();
 
                 WebDriverWait wait = new WebDriverWait(driver, TimeSpan.FromSeconds(3000));
@@ -348,8 +346,11 @@ namespace Bussiness.Business
                     driver.Quit();
                     RegAction(driver, configInfo, personalInfo);
                 }
-                button1.Click();
+                Actions actions = new Actions(driver);
+                actions.MoveToElement(button1).Perform();
                 //actions.MoveToElement(button1).Click().Perform();
+                button1.Click();
+
 
                 //buoc 2 - next
                 var btnNextClassname = "cs-button--arrow_next";
@@ -441,7 +442,7 @@ namespace Bussiness.Business
                     return button4.Displayed && button4.Enabled;
                 });
                 button4.Click();
-
+                Thread.Sleep(200);
                 //buoc 5 thanh toan - continue 1
                 var btnPaymentContinueSelector = ".cs-checkout__bottom button.cs-button--arrow_next";
                 var button5 = wait.Until(driver =>
@@ -455,7 +456,7 @@ namespace Bussiness.Business
                     return button5.Displayed && button5.Enabled;
                 });
                 button5.Click();
-
+                Thread.Sleep(200);
                 //buoc 5 thanh toan - continue 2
                 var button6 = wait.Until(driver =>
                 {
@@ -473,7 +474,7 @@ namespace Bussiness.Business
                 PersonalDao.GetInstance().Replace(personalInfo);
 
                 driver.Manage().Cookies.DeleteAllCookies();
-                driver.Quit();
+                //driver.Quit();
 
             }
             catch(Exception ex)
