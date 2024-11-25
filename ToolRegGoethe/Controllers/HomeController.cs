@@ -127,32 +127,47 @@ namespace ToolRegGoethe.Controllers
         {
             try
             {
+                string[] proxyList = new string[]
+                {
+                    "160.187.242.104:57513:ffff:aaaaa",
+                    "160.187.244.141:57513:ffff:aaaaa",
+                    "160.187.242.215:57513:ffff:aaaaa",
+                    "160.187.243.93:57513:ffff:aaaaa",
+                    "160.187.242.103:57513:ffff:aaaaa"
+                };
                 var configInfo = ConfigDao.GetInstance().GetById(reqData.IdStr);
                 var pList = PersonalDao.GetInstance().GetByConfigId(configInfo._id);
+                var regModelList = new List<RegModel>();
 
-                new RegBussiness().Reg(configInfo, pList[1]);
+                //mở chrome
+                var index = 0;
+                foreach (var info in pList)
+                {
+                    try
+                    {
+                        var d = new RegBussiness().OpenNewChrome(configInfo, info, proxyList[index]);
+                        RegModel model = new RegModel();
+                        model.Driver = d;
+                        model.Info = info;
+                        regModelList.Add(model);
+                        index++;
+                    }
+                    catch (Exception ex)
+                    {
+                    }
+                }
+                //check
 
-                //var regModelList = new List<RegModel>();
+                var check = new RegBussiness().CheckActive(configInfo);
 
-                //foreach (var info in pList)
-                //{
-                //    try
-                //    {
-                //        var d = new RegBussiness().OpenNewChrome(configInfo, info);
-                //        RegModel model = new RegModel();
-                //        model.Driver = d;
-                //        model.Info = info;
-                //        regModelList.Add(model);
-                //    }
-                //    catch(Exception ex)
-                //    {
-                //    }
-                //}
-
-                //regModelList.AsParallel().ForAll(item =>
-                //{
-                //    new RegBussiness().RegAction(item.Driver, configInfo, item.Info);
-                //});
+                if (check)
+                {
+                    //thuc hien dang ký
+                    regModelList.AsParallel().ForAll(item =>
+                    {
+                        new RegBussiness().RegAction(item.Driver, configInfo, item.Info);
+                    });
+                }
 
                 return Json(new
                 {

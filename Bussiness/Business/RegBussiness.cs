@@ -1,13 +1,16 @@
 ﻿using Bussiness.Dao;
 using Bussiness.Models;
 using MongoDB.Bson;
+using MongoDB.Bson.Serialization.IdGenerators;
 using OpenQA.Selenium;
 using OpenQA.Selenium.Chrome;
 using OpenQA.Selenium.Interactions;
 using OpenQA.Selenium.Support.UI;
 using System.ComponentModel;
+using System.IO.Compression;
 using WebDriverManager;
 using WebDriverManager.DriverConfigs.Impl;
+using static OpenQA.Selenium.BiDi.Modules.Script.RemoteValue;
 
 namespace Bussiness.Business
 {
@@ -278,13 +281,22 @@ namespace Bussiness.Business
             return elementAtPoint != null && !elementAtPoint.Equals(element);
         }
 
-        public IWebDriver OpenNewChrome(ConfigInfo configInfo, PersonalInfo personalInfo)
+        public IWebDriver OpenNewChrome(ConfigInfo configInfo, PersonalInfo personalInfo, string proxyStr)
         {
+            string[] proxyParts = proxyStr.Split(':');
+            string proxyIp = proxyParts[0];
+            int proxyPort = int.Parse(proxyParts[1]);
+            string proxyUser = proxyParts[2];
+            string proxyPass = proxyParts[3];
+
+            string extensionPath = CreateProxyAuthExtension(proxyIp, proxyPort, proxyUser, proxyPass);
             // Đường dẫn đến profile của Chrome
             string chromeProfilePath = personalInfo.ProfilePath; // Thay đổi đường dẫn nếu cần
             string chromeProfileName = personalInfo.ProfileName; // Thay đổi đường dẫn nếu cần
             var options = new ChromeOptions();
             //options.AddArgument($"--user-data-dir={chromeProfilePath + "\\" + chromeProfileName}");
+            //options.AddArgument($"--proxy-server=http://{proxyIp}:{proxyPort}");
+            options.AddExtension(extensionPath);
             options.AddArgument($"--user-data-dir={chromeProfilePath}");
             options.AddArgument($"--profile-directory={chromeProfileName}");
 
@@ -301,6 +313,9 @@ namespace Bussiness.Business
         {
             try
             {
+                Actions actions = new Actions(driver);
+                actions.SendKeys(Keys.F5).Perform();
+
                 WebDriverWait wait = new WebDriverWait(driver, TimeSpan.FromSeconds(3000));
 
                 wait.Until((x) =>
@@ -335,8 +350,7 @@ namespace Bussiness.Business
                     Reg(configInfo, personalInfo);
                 }
                 //button1.Click();
-                var actions1 = new Actions(driver);
-                actions1.MoveToElement(button1).Click().Perform();
+                actions.MoveToElement(button1).Click().Perform();
 
                 //buoc 2 - next
                 var btnNextClassname = "cs-button--arrow_next";
@@ -515,7 +529,6 @@ namespace Bussiness.Business
                     return button5.Displayed && button5.Enabled;
                 });
                 button5.Click();
-                Task.Delay(2000).Wait();
             }
             catch
             {
@@ -524,6 +537,114 @@ namespace Bussiness.Business
                 //Reg(configInfo, personalInfo);
                 throw;
             }
+        }
+
+        // Tạo extension để tự động nhập thông tin đăng nhập vào proxy
+        static string CreateProxyAuthExtension(string proxyHost, int proxyPort, string proxyUser, string proxyPass)
+        {
+            string extensionFolder = Path.Combine(Path.GetTempPath(), "ProxyAuthExtension_" + Guid.NewGuid().ToString());
+            Directory.CreateDirectory(extensionFolder);
+
+            string manifestJson = @"
+                {
+                    ""version"": ""1.0.0"",
+                    ""manifest_version"": 2,
+                    ""name"": ""Chrome Proxy"",
+                    ""permissions"": [ ""proxy"", ""tabs"", ""unlimitedStorage"", ""storage"", ""<all_urls>"", ""webRequest"", ""webRequestBlocking"" ],
+                    ""background"": { ""scripts"": [ ""background.js"" ] },
+                    ""minimum_chrome_version"": ""22.0.0""
+                }";
+
+            string backgroundJs = $@"
+                var config = {{
+                    mode: ""fixed_servers"",
+                    rules: {{
+                      singleProxy: {{
+                        scheme: ""http"",
+                        host: ""{proxyHost}"",
+                        port: {proxyPort}
+                      }},
+                      bypassList: [""localhost""]
+                    }}
+                }};
+
+                chrome.proxy.settings.set({{value: config, scope: ""regular""}}, function() {{}});
+
+                chrome.webRequest.onAuthRequired.addListener(
+                    function(details, callback) {{
+                        callback({{authCredentials: {{username: ""{proxyUser}"", password: ""{proxyPass}""}}}});
+                    }},
+                    {{urls: [""<all_urls>""]}},
+                    [""blocking""]
+                );
+                ";
+
+            File.WriteAllText(Path.Combine(extensionFolder, "manifest.json"), manifestJson);
+            File.WriteAllText(Path.Combine(extensionFolder, "background.js"), backgroundJs);
+
+            string zipPath = extensionFolder + ".zip";
+            ZipFile.CreateFromDirectory(extensionFolder, zipPath);
+
+            return zipPath;
+        }
+
+        public bool CheckActive(ConfigInfo configInfo)
+        {
+            string chromeProfilePath = "D:\\ChromeProfile"; // Thay đổi đường dẫn nếu cần
+            string chromeProfileName = "Default"; // Thay đổi đường dẫn nếu cần
+            var options = new ChromeOptions();
+            //options.AddArgument($"--user-data-dir={chromeProfilePath + "\\" + chromeProfileName}");
+            options.AddArgument($"--user-data-dir={chromeProfilePath}");
+            options.AddArgument($"--profile-directory={chromeProfileName}");
+
+            // Khởi tạo ChromeDriver
+            IWebDriver driver = new ChromeDriver(options);
+            // Mở trang web
+            driver.Url = configInfo.Link;
+            driver.Navigate();
+
+            var check = false;
+
+            while (!check)
+            {
+                Actions actions = new Actions(driver);
+                actions.SendKeys(Keys.F5).Perform();
+
+                WebDriverWait wait = new WebDriverWait(driver, TimeSpan.FromSeconds(3000));
+
+                wait.Until((x) =>
+                {
+                    return ((IJavaScriptExecutor)driver).ExecuteScript("return document.readyState").Equals("complete");
+
+                });
+
+                // Lấy chiều cao của trang (scrollHeight) bằng JavaScript
+                IJavaScriptExecutor jsExecutor = (IJavaScriptExecutor)driver;
+                var scrollHeight = (long)jsExecutor.ExecuteScript("return document.body.scrollHeight");
+                // Tính vị trí cần cuộn (50% chiều cao trang)
+                long scrollPosition = scrollHeight / 2;
+                // Cuộn xuống 50% trang
+                jsExecutor.ExecuteScript($"window.scrollTo(0, {scrollPosition});");
+
+                //buoc 1 - chon
+                var btnRegClassname = "btnGruen";
+                var button1 = wait.Until(driver =>
+                {
+                    var element = driver.FindElement(By.ClassName(btnRegClassname)); // Thay thế bằng ID thực tế
+                    return (element.Displayed && element.Enabled) ? element : null;
+                });
+                ((IJavaScriptExecutor)driver).ExecuteScript("arguments[0].scrollIntoView(true);", button1);
+                wait.Until(driver =>
+                {
+                    return button1.Displayed && button1.Enabled && !IsElementCovered(driver, button1); ;
+                });
+                if (button1 != null)
+                {
+                    check = true;
+                }
+            }
+
+            return check;
         }
     }
 }
