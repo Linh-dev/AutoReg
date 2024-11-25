@@ -4,12 +4,9 @@ using Bussiness.DTOs;
 using Bussiness.Models;
 using Microsoft.AspNetCore.Mvc;
 using MongoDB.Bson;
-using Newtonsoft.Json;
 using OfficeOpenXml;
 using OpenQA.Selenium;
-using System;
 using System.Diagnostics;
-using System.Threading.Tasks;
 
 namespace ToolRegGoethe.Controllers
 {
@@ -130,11 +127,7 @@ namespace ToolRegGoethe.Controllers
             {
                 string[] proxyList = new string[]
                 {
-                    "160.187.242.104:57513:vs57513:fNNhNK2",
-                    "160.187.244.141:57513:vs57513:fNNhNK2",
-                    "160.187.242.215:57513:vs57513:fNNhNK2",
-                    "160.187.243.93:57513:vs57513:fNNhNK2",
-                    "160.187.242.103:57513:vs57513:fNNhNK2"
+
                 };
                 var configInfo = ConfigDao.GetInstance().GetById(reqData.IdStr);
                 var pList = PersonalDao.GetInstance().GetByConfigId(configInfo._id);
@@ -145,40 +138,48 @@ namespace ToolRegGoethe.Controllers
                 var regModelList = new List<RegModel>();
 
                 //mở chrome
-                foreach(var info in pList)
+                #region
+                pList.AsParallel().ForAll(info =>
                 {
                     var d = new RegBussiness().OpenNewChrome(configInfo, info, proxyList[info.IndexA]);
                     RegModel model = new RegModel();
                     model.Driver = d;
                     model.Info = info;
-                    regModelList.Add(model);
-                }
-                #region
-                //pList.AsParallel().ForAll(info =>
-                //{
-                //    var d = new RegBussiness().OpenNewChrome(configInfo, info, proxyList[info.IndexA]);
-                //    RegModel model = new RegModel();
-                //    model.Driver = d;
-                //    model.Info = info;
-                //    lock (lockObject)
-                //    {
-                //        regModelList.Add(model);
-                //    }
-                //});
+                    lock (lockObject)
+                    {
+                        regModelList.Add(model);
+                    }
+                });
                 #endregion
+
+                new RegBussiness().RegAction(regModelList[0].Driver, configInfo, regModelList[0].Info);
 
                 ////check
                 //var check = true;
                 var check = new RegBussiness().CheckActive(configInfo);
-
-                if (check)
+                var semaphore = new SemaphoreSlim(5);
+                //thuc hien dang ký
+                await Parallel.ForEachAsync(regModelList, async (item, cancellationToken) =>
                 {
-                    //thuc hien dang ký
-                    regModelList.AsParallel().ForAll(item =>
+                    await semaphore.WaitAsync(cancellationToken); // Kiểm soát luồng
+
+                    try
                     {
-                        new RegBussiness().RegAction(item.Driver, configInfo, item.Info);
-                    });
-                }
+                        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(4)); // Thời gian tối đa 5 giây
+                        await Task.Run(() =>
+                        {
+                            new RegBussiness().RegAction(item.Driver, configInfo, item.Info);
+                        }, cts.Token);
+                    }
+                    catch (OperationCanceledException)
+                    {
+                        Console.WriteLine($"Processing of {item.Driver} was canceled after 4 seconds.");
+                    }
+                    finally
+                    {
+                        semaphore.Release(); // Giải phóng luồng
+                    }
+                });
 
                 return Json(new
                 {

@@ -312,7 +312,6 @@ namespace Bussiness.Business
             try
             {
                 Actions actions = new Actions(driver);
-                //actions.SendKeys(Keys.F5).Perform();
 
                 driver.Navigate().Refresh();
 
@@ -347,10 +346,10 @@ namespace Bussiness.Business
                 if (button1 == null)
                 {
                     driver.Quit();
-                    Reg(configInfo, personalInfo);
+                    RegAction(driver, configInfo, personalInfo);
                 }
-                //button1.Click();
-                actions.MoveToElement(button1).Click().Perform();
+                button1.Click();
+                //actions.MoveToElement(button1).Click().Perform();
 
                 //buoc 2 - next
                 var btnNextClassname = "cs-button--arrow_next";
@@ -364,105 +363,35 @@ namespace Bussiness.Business
                 {
                     return button2.Displayed && button2.Enabled;
                 });
-
-
+                Thread.Sleep(200);
                 //reading
-                var reading = driver.FindElement(By.XPath("//input[normalize-space(@id)='reading']"));
-                //bo chon
-                if (!personalInfo.IsReading && reading.Selected)
+                if (!personalInfo.IsReading)
                 {
-                    ((IJavaScriptExecutor)driver).ExecuteScript(@"
-                            var style = document.querySelector('style');
-                            if (style) {
-                                style.innerHTML = 'label[for=\"" reading \""]::after { content: none !important; }';
-                            }
-                        ");
+                    UncheckCheckbox(driver, " reading ");
                 }
-                //chon
-                if (personalInfo.IsReading && !reading.Selected)
-                {
-                    ((IJavaScriptExecutor)driver).ExecuteScript(@"
-                            var style = document.querySelector('style');
-                            if (style) {
-                                style.innerHTML = 'label[for=\"" reading \""]::after { initial : none !important; }';
-                            }
-                        ");
-                }
-
+                Thread.Sleep(200);
                 //listening
-                var listening = driver.FindElement(By.XPath("//input[@id=' listening ']"));
-                //bo chon
-                if (!personalInfo.IsReading && reading.Selected)
+                if (!personalInfo.IsListening)
                 {
-                    ((IJavaScriptExecutor)driver).ExecuteScript(@"
-                            var style = document.querySelector('style');
-                            if (style) {
-                                style.innerHTML = 'label[for=\"" listening \""]::after { content: none !important; }';
-                            }
-                        ");
+                    UncheckCheckbox(driver, " listening ");
                 }
-                //chon
-                if (personalInfo.IsReading && !reading.Selected)
-                {
-                    ((IJavaScriptExecutor)driver).ExecuteScript(@"
-                            var style = document.querySelector('style');
-                            if (style) {
-                                style.innerHTML = 'label[for=\"" listening \""]::after { initial : none !important; }';
-                            }
-                        ");
-                }
-
+                Thread.Sleep(200);
                 //writing
-                var writing = driver.FindElement(By.XPath("//input[@id=' writing ']"));
-                //bo chon
-                if (!personalInfo.IsReading && reading.Selected)
+                if (!personalInfo.IsWriting)
                 {
-                    ((IJavaScriptExecutor)driver).ExecuteScript(@"
-                            var style = document.querySelector('style');
-                            if (style) {
-                                style.innerHTML = 'label[for=\"" writing \""]::after { content: none !important; }';
-                            }
-                        ");
+                    UncheckCheckbox(driver, " writing ");
                 }
-                //chon
-                if (personalInfo.IsReading && !reading.Selected)
-                {
-                    ((IJavaScriptExecutor)driver).ExecuteScript(@"
-                            var style = document.querySelector('style');
-                            if (style) {
-                                style.innerHTML = 'label[for=\"" writing \""]::after { initial : none !important; }';
-                            }
-                        ");
-                }
-
+                Thread.Sleep(200);
                 //speaking
-                var speaking = driver.FindElement(By.XPath("//input[@id=' speaking ']"));
-                //bo chon
-                if (!personalInfo.IsReading && reading.Selected)
+                if (!personalInfo.IsSpeaking)
                 {
-                    ((IJavaScriptExecutor)driver).ExecuteScript(@"
-                            var style = document.querySelector('style');
-                            if (style) {
-                                style.innerHTML = 'label[for=\"" speaking \""]::after { content: none !important; }';
-                            }
-                        ");
-                }
-                //chon
-                if (personalInfo.IsReading && !reading.Selected)
-                {
-                    ((IJavaScriptExecutor)driver).ExecuteScript(@"
-                            var style = document.querySelector('style');
-                            if (style) {
-                                style.innerHTML = 'label[for=\"" speaking \""]::after { initial : none !important; }';
-                            }
-                        ");
+                    UncheckCheckbox(driver, " speaking ");
                 }
 
                 button2.Click();
 
                 //buoc 3 - book my selft
                 var btnBookMySelftSelector = ".cs-layer__button-wrapper .cs-button.cs-layer__button--high:nth-of-type(2)";
-                //IWebElement button3 = driver.FindElement(By.CssSelector(btnBookMySelftSelector));
                 var button3 = wait.Until(driver =>
                 {
                     var element = driver.FindElement(By.CssSelector(btnBookMySelftSelector));
@@ -477,7 +406,6 @@ namespace Bussiness.Business
 
                 //buoc 4 - nhap tai khoan
                 var inputEmailId = "username";
-                //var inputEmail = driver.FindElement(By.Id(inputEmailId));
                 var inputEmail = wait.Until(driver =>
                 {
                     var element = driver.FindElement(By.Id(inputEmailId));
@@ -490,7 +418,6 @@ namespace Bussiness.Business
                 inputEmail.SendKeys(personalInfo.Username);
 
                 var inputPwId = "password";
-                //var inputPw = driver.FindElement(By.Id(inputPwId));
                 var inputPw = wait.Until(driver =>
                 {
                     var element = driver.FindElement(By.Id(inputPwId));
@@ -503,7 +430,6 @@ namespace Bussiness.Business
                 inputPw.SendKeys(personalInfo.Password);
 
                 var btnLoginSelector = "#fm1 > input.btn.submit.arrow.right";
-                //IWebElement button4 = driver.FindElement(By.CssSelector(btnRegSelector));
                 var button4 = wait.Until(driver =>
                 {
                     var element = driver.FindElement(By.CssSelector(btnLoginSelector));
@@ -542,11 +468,15 @@ namespace Bussiness.Business
                     return button6.Displayed && button6.Enabled;
                 });
                 button6.Click();
+
+                personalInfo.IsSuccess = true;
+                PersonalDao.GetInstance().Replace(personalInfo);
+
                 driver.Manage().Cookies.DeleteAllCookies();
                 driver.Quit();
 
             }
-            catch
+            catch(Exception ex)
             {
                 driver.Manage().Cookies.DeleteAllCookies();
                 driver.Quit();
@@ -578,7 +508,7 @@ namespace Bussiness.Business
 
                 driver.Navigate().Refresh();
 
-                WebDriverWait wait = new WebDriverWait(driver, TimeSpan.FromSeconds(3000));
+                WebDriverWait wait = new WebDriverWait(driver, TimeSpan.FromSeconds(100));
 
                 wait.Until((x) =>
                 {
@@ -613,6 +543,27 @@ namespace Bussiness.Business
             }
             driver.Close();
             return check;
+        }
+
+        private void UncheckCheckbox(IWebDriver driver, string checkboxId)
+        {
+            // Sử dụng JavaScript để chắc chắn bỏ chọn checkbox
+            ((IJavaScriptExecutor)driver).ExecuteScript($@"
+                var checkbox = document.querySelector('input[id=\""{checkboxId}\""]');
+                if (checkbox) {{
+                    checkbox.checked = false; // Bỏ chọn
+                    checkbox.dispatchEvent(new Event('change')); // Gửi sự kiện change để đảm bảo mọi script được cập nhật
+                }}
+            ");
+
+            ((IJavaScriptExecutor)driver).ExecuteScript($@"
+            var style = document.querySelector('style');
+            if (!style) {{
+                style = document.createElement('style');
+                document.head.appendChild(style);
+            }}
+            style.innerHTML = 'label[for=\""{checkboxId}\""]::after {{ content: none !important; }}';
+                ");
         }
     }
 }
