@@ -23,7 +23,9 @@ namespace Bussiness.Models
         }
         [BsonIgnore]
         public int CountPersonal { get; set; }
+        [BsonIgnore]
         public int CountSuccess { get; set; }
+        [BsonIgnore]
         public int CountFailure { get; set; }
     }
 }

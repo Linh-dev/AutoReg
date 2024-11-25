@@ -4,8 +4,12 @@ using Bussiness.DTOs;
 using Bussiness.Models;
 using Microsoft.AspNetCore.Mvc;
 using MongoDB.Bson;
+using Newtonsoft.Json;
 using OfficeOpenXml;
+using OpenQA.Selenium;
+using System;
 using System.Diagnostics;
+using System.Threading.Tasks;
 
 namespace ToolRegGoethe.Controllers
 {
@@ -17,6 +21,11 @@ namespace ToolRegGoethe.Controllers
         }
 
         public IActionResult Index()
+        {
+            return View();
+        }
+
+        public IActionResult IndexNew()
         {
             return View();
         }
@@ -45,6 +54,29 @@ namespace ToolRegGoethe.Controllers
                     item.CountSuccess = pList.Where(p => p.IsSuccess).ToList().Count;
                     item.CountFailure = pList.Where(p => !p.IsSuccess).ToList().Count;
                 }
+                return Json(new
+                {
+                    Data = data,
+                    ReturnCode = 1,
+                    Message = "Thành công"
+                });
+            }
+            catch (Exception ex)
+            {
+                return Json(new
+                {
+                    ReturnCode = 0,
+                    Message = "Lỗi"
+                });
+            }
+        }
+
+        [HttpPost]
+        public async Task<JsonResult> GetAllNew()
+        {
+            try
+            {
+                var data = PersonalDao.GetInstance().GetAll();
                 return Json(new
                 {
                     Data = data,
@@ -98,44 +130,58 @@ namespace ToolRegGoethe.Controllers
                 var configInfo = ConfigDao.GetInstance().GetById(reqData.IdStr);
                 var pList = PersonalDao.GetInstance().GetByConfigId(configInfo._id);
 
-                var regBuss = new RegBussiness();
+                new RegBussiness().Reg(configInfo, pList[1]);
 
-                regBuss.Reg(configInfo, pList[0]);
-                regBuss.Reg(configInfo, pList[1]);
-                regBuss.Reg(configInfo, pList[2]);
+                //var regModelList = new List<RegModel>();
 
-                //Parallel.ForEach(pList, new ParallelOptions { MaxDegreeOfParallelism = 4 }, item =>
+                //foreach (var info in pList)
                 //{
                 //    try
                 //    {
-                //        regBuss.Reg(configInfo, item);
+                //        var d = new RegBussiness().OpenNewChrome(configInfo, info);
+                //        RegModel model = new RegModel();
+                //        model.Driver = d;
+                //        model.Info = info;
+                //        regModelList.Add(model);
                 //    }
-                //    catch
+                //    catch(Exception ex)
                 //    {
-                //        try
-                //        {
-                //            regBuss.Reg(configInfo, item);
-                //        }
-                //        catch
-                //        {
-                //            try
-                //            {
-                //                regBuss.Reg(configInfo, item);
-                //            }
-                //            catch
-                //            {
-                //                try
-                //                {
-                //                    regBuss.Reg(configInfo, item);
-                //                }
-                //                catch
-                //                {
-                //                    regBuss.Reg(configInfo, item);
-                //                }
-                //            }
-                //        }
                 //    }
+                //}
+
+                //regModelList.AsParallel().ForAll(item =>
+                //{
+                //    new RegBussiness().RegAction(item.Driver, configInfo, item.Info);
                 //});
+
+                return Json(new
+                {
+                    ReturnCode = 1,
+                    Message = "Thành công"
+                });
+            }
+            catch (Exception ex)
+            {
+                return Json(new
+                {
+                    ReturnCode = 0,
+                    Message = "Lỗi"
+                });
+            }
+        }
+
+
+        [HttpPost]
+        public async Task<JsonResult> StartRegNew([FromBody] BaseRequest reqData)
+        {
+            try
+            {
+                var personalInfo = PersonalDao.GetInstance().GetById(reqData.IdStr);
+                var configInfo = ConfigDao.GetInstance().GetById(personalInfo.ConfigId);
+
+                var drivers = new List<IWebDriver>();
+
+                new RegBussiness().Reg(configInfo, personalInfo);
 
                 return Json(new
                 {
@@ -160,7 +206,7 @@ namespace ToolRegGoethe.Controllers
         {
             try
             {
-                var profilePath = "D:\\ChromeProfile\\User Data";
+                var profilePath = "D:\\ChromeProfile\\UserData";
                 var profileName = "Profile ";
                 var file = Request.Form.Files[0];
                 if (file != null && file.Length > 0)
@@ -221,7 +267,7 @@ namespace ToolRegGoethe.Controllers
                                 personalInfo.IsListening = !string.IsNullOrEmpty(listening);
                                 personalInfo.IsWriting = !string.IsNullOrEmpty(writing);
                                 personalInfo.IsSpeaking = !string.IsNullOrEmpty(speaking);
-                                personalInfo.ProfilePath = profilePath;
+                                personalInfo.ProfilePath = profilePath + profileIndex.ToString();
                                 personalInfo.ProfileName = profileName + profileIndex.ToString();
                                 data.Add(personalInfo);
                                 profileIndex++;
@@ -243,3 +289,4 @@ namespace ToolRegGoethe.Controllers
         }
     }
 }
+
