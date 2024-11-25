@@ -17,6 +17,7 @@
                         <th scope="col">
                             Hành động
                         </th>
+                        <th scope="col">Tên CH</th>
                         <th scope="col">Tài khoản</th>
                         <th scope="col">Trạng thái</th>
                         <th scope="col">Thực hiện</th>
@@ -30,7 +31,9 @@
                         <td>
                             <i class="fa-solid fa-delete-left" ng-click="showDeleteModal($event,x)"></i>
                         </td>
-
+                        <td>
+                            <span ng-bind="x.name"></span>
+                        </td>
                         <td>
                             <span ng-bind="x.username"></span>
                         </td>

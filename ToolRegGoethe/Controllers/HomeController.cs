@@ -74,6 +74,11 @@ namespace ToolRegGoethe.Controllers
             try
             {
                 var data = PersonalDao.GetInstance().GetAll();
+                foreach (var item in data)
+                {
+                    var configInfo = ConfigDao.GetInstance().GetById(item.ConfigId);
+                    item.Name = configInfo.Name;
+                }
                 return Json(new
                 {
                     Data = data,
