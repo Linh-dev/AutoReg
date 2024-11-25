@@ -122,6 +122,7 @@ namespace ToolRegGoethe.Controllers
             }
         }
 
+        private object lockObject = new object();
         [HttpPost]
         public async Task<JsonResult> StartReg([FromBody] BaseRequest reqData)
         {
@@ -129,35 +130,45 @@ namespace ToolRegGoethe.Controllers
             {
                 string[] proxyList = new string[]
                 {
-                    "160.187.242.104:57513:ffff:aaaaa",
-                    "160.187.244.141:57513:ffff:aaaaa",
-                    "160.187.242.215:57513:ffff:aaaaa",
-                    "160.187.243.93:57513:ffff:aaaaa",
-                    "160.187.242.103:57513:ffff:aaaaa"
+                    "160.187.242.104:57513:vs57513:fNNhNK2",
+                    "160.187.244.141:57513:vs57513:fNNhNK2",
+                    "160.187.242.215:57513:vs57513:fNNhNK2",
+                    "160.187.243.93:57513:vs57513:fNNhNK2",
+                    "160.187.242.103:57513:vs57513:fNNhNK2"
                 };
                 var configInfo = ConfigDao.GetInstance().GetById(reqData.IdStr);
                 var pList = PersonalDao.GetInstance().GetByConfigId(configInfo._id);
+                for(var i = 0; i < pList.Count; i++)
+                {
+                    pList[i].IndexA = i;
+                }
                 var regModelList = new List<RegModel>();
 
                 //mở chrome
-                var index = 0;
-                foreach (var info in pList)
+                foreach(var info in pList)
                 {
-                    try
-                    {
-                        var d = new RegBussiness().OpenNewChrome(configInfo, info, proxyList[index]);
-                        RegModel model = new RegModel();
-                        model.Driver = d;
-                        model.Info = info;
-                        regModelList.Add(model);
-                        index++;
-                    }
-                    catch (Exception ex)
-                    {
-                    }
+                    var d = new RegBussiness().OpenNewChrome(configInfo, info, proxyList[info.IndexA]);
+                    RegModel model = new RegModel();
+                    model.Driver = d;
+                    model.Info = info;
+                    regModelList.Add(model);
                 }
-                //check
+                #region
+                //pList.AsParallel().ForAll(info =>
+                //{
+                //    var d = new RegBussiness().OpenNewChrome(configInfo, info, proxyList[info.IndexA]);
+                //    RegModel model = new RegModel();
+                //    model.Driver = d;
+                //    model.Info = info;
+                //    lock (lockObject)
+                //    {
+                //        regModelList.Add(model);
+                //    }
+                //});
+                #endregion
 
+                ////check
+                //var check = true;
                 var check = new RegBussiness().CheckActive(configInfo);
 
                 if (check)

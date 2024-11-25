@@ -32,5 +32,7 @@ namespace Bussiness.Models
                 }
             }
         }
+        [BsonIgnore]
+        public int IndexA { get; set; }
     }
 }

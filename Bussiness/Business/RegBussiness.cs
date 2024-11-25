@@ -4,6 +4,7 @@ using MongoDB.Bson;
 using MongoDB.Bson.Serialization.IdGenerators;
 using OpenQA.Selenium;
 using OpenQA.Selenium.Chrome;
+using OpenQA.Selenium.Chrome.ChromeDriverExtensions;
 using OpenQA.Selenium.Interactions;
 using OpenQA.Selenium.Support.UI;
 using System.ComponentModel;
@@ -59,7 +60,7 @@ namespace Bussiness.Business
                 var btnRegClassname = "btnGruen";
                 var button1 = wait.Until(driver =>
                 {
-                    var element = driver.FindElement(By.ClassName(btnRegClassname)); // Thay thế bằng ID thực tế
+                    var element = driver.FindElement(By.ClassName(btnRegClassname));
                     return (element.Displayed && element.Enabled) ? element : null;
                 });
                 ((IJavaScriptExecutor)driver).ExecuteScript("arguments[0].scrollIntoView(true);", button1);
@@ -80,7 +81,7 @@ namespace Bussiness.Business
                 var btnNextClassname = "cs-button--arrow_next";
                 var button2 = wait.Until(driver =>
                 {
-                    var element = driver.FindElement(By.ClassName(btnNextClassname)); // Thay thế bằng ID thực tế
+                    var element = driver.FindElement(By.ClassName(btnNextClassname));
                     return (element.Displayed && element.Enabled) ? element : null;
                 });
                 ((IJavaScriptExecutor)driver).ExecuteScript("arguments[0].scrollIntoView(true);", button2);
@@ -189,7 +190,7 @@ namespace Bussiness.Business
                 //IWebElement button3 = driver.FindElement(By.CssSelector(btnBookMySelftSelector));
                 var button3 = wait.Until(driver =>
                 {
-                    var element = driver.FindElement(By.CssSelector(btnBookMySelftSelector)); // Thay thế bằng ID thực tế
+                    var element = driver.FindElement(By.CssSelector(btnBookMySelftSelector));
                     return (element.Displayed && element.Enabled) ? element : null;
                 });
                 ((IJavaScriptExecutor)driver).ExecuteScript("arguments[0].scrollIntoView(true);", button3);
@@ -204,7 +205,7 @@ namespace Bussiness.Business
                 //var inputEmail = driver.FindElement(By.Id(inputEmailId));
                 var inputEmail = wait.Until(driver =>
                 {
-                    var element = driver.FindElement(By.Id(inputEmailId)); // Thay thế bằng ID thực tế
+                    var element = driver.FindElement(By.Id(inputEmailId));
                     return (element.Displayed && element.Enabled) ? element : null;
                 });
                 wait.Until(driver =>
@@ -217,7 +218,7 @@ namespace Bussiness.Business
                 //var inputPw = driver.FindElement(By.Id(inputPwId));
                 var inputPw = wait.Until(driver =>
                 {
-                    var element = driver.FindElement(By.Id(inputPwId)); // Thay thế bằng ID thực tế
+                    var element = driver.FindElement(By.Id(inputPwId));
                     return (element.Displayed && element.Enabled) ? element : null;
                 });
                 wait.Until(driver =>
@@ -230,7 +231,7 @@ namespace Bussiness.Business
                 //IWebElement button4 = driver.FindElement(By.CssSelector(btnRegSelector));
                 var button4 = wait.Until(driver =>
                 {
-                    var element = driver.FindElement(By.CssSelector(btnLoginSelector)); // Thay thế bằng ID thực tế
+                    var element = driver.FindElement(By.CssSelector(btnLoginSelector));
                     return (element.Displayed && element.Enabled) ? element : null;
                 });
                 ((IJavaScriptExecutor)driver).ExecuteScript("arguments[0].scrollIntoView(true);", button4);
@@ -244,7 +245,7 @@ namespace Bussiness.Business
                 var btnPaymentContinueSelector = ".cs-checkout__bottom button.cs-button--arrow_next";
                 var button5 = wait.Until(driver =>
                 {
-                    var element = driver.FindElement(By.CssSelector(btnPaymentContinueSelector)); // Thay thế bằng ID thực tế
+                    var element = driver.FindElement(By.CssSelector(btnPaymentContinueSelector));
                     return (element.Displayed && element.Enabled) ? element : null;
                 });
                 ((IJavaScriptExecutor)driver).ExecuteScript("arguments[0].scrollIntoView(true);", button5);
@@ -289,16 +290,13 @@ namespace Bussiness.Business
             string proxyUser = proxyParts[2];
             string proxyPass = proxyParts[3];
 
-            string extensionPath = CreateProxyAuthExtension(proxyIp, proxyPort, proxyUser, proxyPass);
             // Đường dẫn đến profile của Chrome
             string chromeProfilePath = personalInfo.ProfilePath; // Thay đổi đường dẫn nếu cần
             string chromeProfileName = personalInfo.ProfileName; // Thay đổi đường dẫn nếu cần
             var options = new ChromeOptions();
-            //options.AddArgument($"--user-data-dir={chromeProfilePath + "\\" + chromeProfileName}");
-            //options.AddArgument($"--proxy-server=http://{proxyIp}:{proxyPort}");
-            options.AddExtension(extensionPath);
             options.AddArgument($"--user-data-dir={chromeProfilePath}");
             options.AddArgument($"--profile-directory={chromeProfileName}");
+            options.AddHttpProxy(proxyIp, proxyPort, proxyUser, proxyPass);
 
             // Khởi tạo ChromeDriver
             IWebDriver driver = new ChromeDriver(options);
@@ -314,7 +312,9 @@ namespace Bussiness.Business
             try
             {
                 Actions actions = new Actions(driver);
-                actions.SendKeys(Keys.F5).Perform();
+                //actions.SendKeys(Keys.F5).Perform();
+
+                driver.Navigate().Refresh();
 
                 WebDriverWait wait = new WebDriverWait(driver, TimeSpan.FromSeconds(3000));
 
@@ -336,7 +336,7 @@ namespace Bussiness.Business
                 var btnRegClassname = "btnGruen";
                 var button1 = wait.Until(driver =>
                 {
-                    var element = driver.FindElement(By.ClassName(btnRegClassname)); // Thay thế bằng ID thực tế
+                    var element = driver.FindElement(By.ClassName(btnRegClassname));
                     return (element.Displayed && element.Enabled) ? element : null;
                 });
                 ((IJavaScriptExecutor)driver).ExecuteScript("arguments[0].scrollIntoView(true);", button1);
@@ -356,7 +356,7 @@ namespace Bussiness.Business
                 var btnNextClassname = "cs-button--arrow_next";
                 var button2 = wait.Until(driver =>
                 {
-                    var element = driver.FindElement(By.ClassName(btnNextClassname)); // Thay thế bằng ID thực tế
+                    var element = driver.FindElement(By.ClassName(btnNextClassname));
                     return (element.Displayed && element.Enabled) ? element : null;
                 });
                 ((IJavaScriptExecutor)driver).ExecuteScript("arguments[0].scrollIntoView(true);", button2);
@@ -465,7 +465,7 @@ namespace Bussiness.Business
                 //IWebElement button3 = driver.FindElement(By.CssSelector(btnBookMySelftSelector));
                 var button3 = wait.Until(driver =>
                 {
-                    var element = driver.FindElement(By.CssSelector(btnBookMySelftSelector)); // Thay thế bằng ID thực tế
+                    var element = driver.FindElement(By.CssSelector(btnBookMySelftSelector));
                     return (element.Displayed && element.Enabled) ? element : null;
                 });
                 ((IJavaScriptExecutor)driver).ExecuteScript("arguments[0].scrollIntoView(true);", button3);
@@ -480,7 +480,7 @@ namespace Bussiness.Business
                 //var inputEmail = driver.FindElement(By.Id(inputEmailId));
                 var inputEmail = wait.Until(driver =>
                 {
-                    var element = driver.FindElement(By.Id(inputEmailId)); // Thay thế bằng ID thực tế
+                    var element = driver.FindElement(By.Id(inputEmailId));
                     return (element.Displayed && element.Enabled) ? element : null;
                 });
                 wait.Until(driver =>
@@ -493,7 +493,7 @@ namespace Bussiness.Business
                 //var inputPw = driver.FindElement(By.Id(inputPwId));
                 var inputPw = wait.Until(driver =>
                 {
-                    var element = driver.FindElement(By.Id(inputPwId)); // Thay thế bằng ID thực tế
+                    var element = driver.FindElement(By.Id(inputPwId));
                     return (element.Displayed && element.Enabled) ? element : null;
                 });
                 wait.Until(driver =>
@@ -506,7 +506,7 @@ namespace Bussiness.Business
                 //IWebElement button4 = driver.FindElement(By.CssSelector(btnRegSelector));
                 var button4 = wait.Until(driver =>
                 {
-                    var element = driver.FindElement(By.CssSelector(btnLoginSelector)); // Thay thế bằng ID thực tế
+                    var element = driver.FindElement(By.CssSelector(btnLoginSelector));
                     return (element.Displayed && element.Enabled) ? element : null;
                 });
                 ((IJavaScriptExecutor)driver).ExecuteScript("arguments[0].scrollIntoView(true);", button4);
@@ -516,11 +516,11 @@ namespace Bussiness.Business
                 });
                 button4.Click();
 
-                //buoc 5 thanh toan - continue
+                //buoc 5 thanh toan - continue 1
                 var btnPaymentContinueSelector = ".cs-checkout__bottom button.cs-button--arrow_next";
                 var button5 = wait.Until(driver =>
                 {
-                    var element = driver.FindElement(By.CssSelector(btnPaymentContinueSelector)); // Thay thế bằng ID thực tế
+                    var element = driver.FindElement(By.CssSelector(btnPaymentContinueSelector));
                     return (element.Displayed && element.Enabled) ? element : null;
                 });
                 ((IJavaScriptExecutor)driver).ExecuteScript("arguments[0].scrollIntoView(true);", button5);
@@ -529,6 +529,20 @@ namespace Bussiness.Business
                     return button5.Displayed && button5.Enabled;
                 });
                 button5.Click();
+
+                //buoc 5 thanh toan - continue 2
+                var button6 = wait.Until(driver =>
+                {
+                    var element = driver.FindElement(By.CssSelector(btnPaymentContinueSelector));
+                    return (element.Displayed && element.Enabled) ? element : null;
+                });
+                ((IJavaScriptExecutor)driver).ExecuteScript("arguments[0].scrollIntoView(true);", button6);
+                wait.Until(driver =>
+                {
+                    return button6.Displayed && button6.Enabled;
+                });
+                button6.Click();
+
             }
             catch
             {
@@ -537,55 +551,6 @@ namespace Bussiness.Business
                 //Reg(configInfo, personalInfo);
                 throw;
             }
-        }
-
-        // Tạo extension để tự động nhập thông tin đăng nhập vào proxy
-        static string CreateProxyAuthExtension(string proxyHost, int proxyPort, string proxyUser, string proxyPass)
-        {
-            string extensionFolder = Path.Combine(Path.GetTempPath(), "ProxyAuthExtension_" + Guid.NewGuid().ToString());
-            Directory.CreateDirectory(extensionFolder);
-
-            string manifestJson = @"
-                {
-                    ""version"": ""1.0.0"",
-                    ""manifest_version"": 2,
-                    ""name"": ""Chrome Proxy"",
-                    ""permissions"": [ ""proxy"", ""tabs"", ""unlimitedStorage"", ""storage"", ""<all_urls>"", ""webRequest"", ""webRequestBlocking"" ],
-                    ""background"": { ""scripts"": [ ""background.js"" ] },
-                    ""minimum_chrome_version"": ""22.0.0""
-                }";
-
-            string backgroundJs = $@"
-                var config = {{
-                    mode: ""fixed_servers"",
-                    rules: {{
-                      singleProxy: {{
-                        scheme: ""http"",
-                        host: ""{proxyHost}"",
-                        port: {proxyPort}
-                      }},
-                      bypassList: [""localhost""]
-                    }}
-                }};
-
-                chrome.proxy.settings.set({{value: config, scope: ""regular""}}, function() {{}});
-
-                chrome.webRequest.onAuthRequired.addListener(
-                    function(details, callback) {{
-                        callback({{authCredentials: {{username: ""{proxyUser}"", password: ""{proxyPass}""}}}});
-                    }},
-                    {{urls: [""<all_urls>""]}},
-                    [""blocking""]
-                );
-                ";
-
-            File.WriteAllText(Path.Combine(extensionFolder, "manifest.json"), manifestJson);
-            File.WriteAllText(Path.Combine(extensionFolder, "background.js"), backgroundJs);
-
-            string zipPath = extensionFolder + ".zip";
-            ZipFile.CreateFromDirectory(extensionFolder, zipPath);
-
-            return zipPath;
         }
 
         public bool CheckActive(ConfigInfo configInfo)
@@ -607,8 +572,10 @@ namespace Bussiness.Business
 
             while (!check)
             {
-                Actions actions = new Actions(driver);
-                actions.SendKeys(Keys.F5).Perform();
+                //Actions actions = new Actions(driver);
+                //actions.SendKeys(Keys.F5).Perform();
+
+                driver.Navigate().Refresh();
 
                 WebDriverWait wait = new WebDriverWait(driver, TimeSpan.FromSeconds(3000));
 
@@ -630,7 +597,7 @@ namespace Bussiness.Business
                 var btnRegClassname = "btnGruen";
                 var button1 = wait.Until(driver =>
                 {
-                    var element = driver.FindElement(By.ClassName(btnRegClassname)); // Thay thế bằng ID thực tế
+                    var element = driver.FindElement(By.ClassName(btnRegClassname));
                     return (element.Displayed && element.Enabled) ? element : null;
                 });
                 ((IJavaScriptExecutor)driver).ExecuteScript("arguments[0].scrollIntoView(true);", button1);
@@ -643,7 +610,7 @@ namespace Bussiness.Business
                     check = true;
                 }
             }
-
+            driver.Close();
             return check;
         }
     }
