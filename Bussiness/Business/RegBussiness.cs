@@ -542,13 +542,14 @@ namespace Bussiness.Business
                     return button6.Displayed && button6.Enabled;
                 });
                 button6.Click();
+                driver.Manage().Cookies.DeleteAllCookies();
+                driver.Quit();
 
             }
             catch
             {
                 driver.Manage().Cookies.DeleteAllCookies();
-                //driver.Quit();
-                //Reg(configInfo, personalInfo);
+                driver.Quit();
                 throw;
             }
         }
