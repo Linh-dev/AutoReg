@@ -130,16 +130,8 @@ namespace ToolRegGoethe.Controllers
         {
             try
             {
-                string[] proxyList = new string[]
-                {
-                    "160.187.242.104:57513:vs57513:fNNhNK2",
-                    "160.187.244.141:57513:vs57513:fNNhNK2",
-                    "160.187.242.215:57513:vs57513:fNNhNK2",
-                    "160.187.243.93:57513:vs57513:fNNhNK2",
-                    "160.187.242.103:57513:vs57513:fNNhNK2"
-                };
                 var configInfo = ConfigDao.GetInstance().GetById(reqData.IdStr);
-                var pList = PersonalDao.GetInstance().GetByConfigId(configInfo._id);
+                var pList = PersonalDao.GetInstance().GetByConfigId(configInfo._id).Take(5).ToList();
                 for(var i = 0; i < pList.Count; i++)
                 {
                     pList[i].IndexA = i;
@@ -150,7 +142,7 @@ namespace ToolRegGoethe.Controllers
                 #region
                 pList.AsParallel().ForAll(info =>
                 {
-                    var d = new RegBussiness().OpenNewChrome(configInfo, info, proxyList[info.IndexA]);
+                    var d = new RegBussiness().OpenNewChrome(configInfo, info, RegBussiness.ProxyList[info.IndexA]);
                     RegModel model = new RegModel();
                     model.Driver = d;
                     model.Info = info;
@@ -163,7 +155,6 @@ namespace ToolRegGoethe.Controllers
 
                 ////check
                 //var check = true;
-                var check = new RegBussiness().CheckActive(configInfo);
                 var semaphore = new SemaphoreSlim(5);
                 //thuc hien dang ký
                 await Parallel.ForEachAsync(regModelList, async (item, cancellationToken) =>
@@ -172,15 +163,11 @@ namespace ToolRegGoethe.Controllers
 
                     try
                     {
-                        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(4)); // Thời gian tối đa 5 giây
-                        await Task.Run(() =>
-                        {
-                            new RegBussiness().RegAction(item.Driver, configInfo, item.Info);
-                        }, cts.Token);
+                        new RegBussiness().RegAction(item.Driver, configInfo, item.Info);
                     }
                     catch (OperationCanceledException)
                     {
-                        Console.WriteLine($"Processing of {item.Driver} was canceled after 4 seconds.");
+                        Console.WriteLine($"Processing of {item.Driver} was canceled after 5 seconds.");
                     }
                     finally
                     {
@@ -204,24 +191,15 @@ namespace ToolRegGoethe.Controllers
             }
         }
 
-
         [HttpPost]
         public async Task<JsonResult> StartRegNew([FromBody] BaseRequest reqData)
         {
             try
             {
-                string[] proxyList = new string[]
-                {
-                    "160.187.242.104:57513:vs57513:fNNhNK2",
-                    "160.187.244.141:57513:vs57513:fNNhNK2",
-                    "160.187.242.215:57513:vs57513:fNNhNK2",
-                    "160.187.243.93:57513:vs57513:fNNhNK2",
-                    "160.187.242.103:57513:vs57513:fNNhNK2"
-                };
                 var personalInfo = PersonalDao.GetInstance().GetById(reqData.IdStr);
                 var configInfo = ConfigDao.GetInstance().GetById(personalInfo.ConfigId);
 
-                var d = new RegBussiness().OpenNewChrome(configInfo, personalInfo, proxyList[3]);
+                var d = new RegBussiness().OpenNewChrome(configInfo, personalInfo, RegBussiness.ProxyList[3]);
 
                 new RegBussiness().RegAction(d, configInfo, personalInfo);
 
@@ -240,8 +218,6 @@ namespace ToolRegGoethe.Controllers
                 });
             }
         }
-
-
 
         [HttpPost]
         public async Task<IActionResult> UploadExcelFile()
@@ -274,7 +250,6 @@ namespace ToolRegGoethe.Controllers
 
                             ConfigDao.GetInstance().Insert(confInfo);
 
-                            var data = new List<PersonalInfo>();
                             var profileIndex = 4;
                             // Đọc dữ liệu từ worksheet
                             for (int i = 5; i <= rowCount; i++)
@@ -311,11 +286,9 @@ namespace ToolRegGoethe.Controllers
                                 personalInfo.IsSpeaking = !string.IsNullOrEmpty(speaking);
                                 personalInfo.ProfilePath = profilePath + profileIndex.ToString();
                                 personalInfo.ProfileName = profileName + profileIndex.ToString();
-                                data.Add(personalInfo);
                                 profileIndex++;
+                                PersonalDao.GetInstance().Insert(personalInfo);
                             }
-
-                            PersonalDao.GetInstance().InsertRange(data);
                         }
                     }
                 }

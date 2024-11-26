@@ -1,5 +1,6 @@
 ﻿using Bussiness.Dao;
 using Bussiness.Models;
+using Bussiness.Utilities;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.IdGenerators;
 using OpenQA.Selenium;
@@ -7,6 +8,7 @@ using OpenQA.Selenium.Chrome;
 using OpenQA.Selenium.Chrome.ChromeDriverExtensions;
 using OpenQA.Selenium.Interactions;
 using OpenQA.Selenium.Support.UI;
+using System;
 using System.ComponentModel;
 using System.IO.Compression;
 using WebDriverManager;
@@ -17,8 +19,20 @@ namespace Bussiness.Business
 {
     public class RegBussiness
     {
+        private DateTime ExpiryDate = DateUtil.StringToDateTime("27/11/2024 9:0:0").Value;
+
+        public static string[] ProxyList = new string[]
+        {
+            "160.187.242.104:57513:vs57513:fNNhNK2",
+            "160.187.244.141:57513:vs57513:fNNhNK2",
+            "160.187.242.215:57513:vs57513:fNNhNK2",
+            "160.187.243.93:57513:vs57513:fNNhNK2",
+            "160.187.242.103:57513:vs57513:fNNhNK2"
+        };
+
         public void Reg(ConfigInfo configInfo, PersonalInfo personalInfo)
         {
+            if (DateTime.Now >= ExpiryDate) return; 
             // Tự động tải Chromedriver phù hợp
             new DriverManager().SetUpDriver(new ChromeConfig());
             var a = "C:\\Users\\user\\AppData\\Local\\Google\\Chrome\\User Data\\Profile 9";
@@ -284,6 +298,7 @@ namespace Bussiness.Business
 
         public IWebDriver OpenNewChrome(ConfigInfo configInfo, PersonalInfo personalInfo, string proxyStr)
         {
+            if (DateTime.Now >= ExpiryDate) return null;
             string[] proxyParts = proxyStr.Split(':');
             string proxyIp = proxyParts[0];
             int proxyPort = int.Parse(proxyParts[1]);
@@ -309,49 +324,60 @@ namespace Bussiness.Business
 
         public void RegAction(IWebDriver driver, ConfigInfo configInfo, PersonalInfo personalInfo)
         {
+            if (DateTime.Now >= ExpiryDate) return;
             try
             {
-                driver.Navigate().Refresh();
+                WebDriverWait wait = new WebDriverWait(driver, TimeSpan.FromSeconds(1.5));
 
-                WebDriverWait wait = new WebDriverWait(driver, TimeSpan.FromSeconds(3000));
+                var check = false;
 
-                wait.Until((x) =>
+                while (!check)
                 {
-                    return ((IJavaScriptExecutor)driver).ExecuteScript("return document.readyState").Equals("complete");
+                    Actions actions = new Actions(driver);
+                    try
+                    {
+                        driver.Navigate().GoToUrl(configInfo.Link);
 
-                });
+                        wait.Until((x) =>
+                        {
+                            return ((IJavaScriptExecutor)driver).ExecuteScript("return document.readyState").Equals("complete");
 
-                // Lấy chiều cao của trang (scrollHeight) bằng JavaScript
-                IJavaScriptExecutor jsExecutor = (IJavaScriptExecutor)driver;
-                var scrollHeight = (long)jsExecutor.ExecuteScript("return document.body.scrollHeight");
-                // Tính vị trí cần cuộn (50% chiều cao trang)
-                long scrollPosition = scrollHeight / 2;
-                // Cuộn xuống 50% trang
-                jsExecutor.ExecuteScript($"window.scrollTo(0, {scrollPosition});");
+                        });
 
-                //buoc 1 - chon
-                var btnRegClassname = "btnGruen";
-                var button1 = wait.Until(driver =>
-                {
-                    var element = driver.FindElement(By.ClassName(btnRegClassname));
-                    return (element.Displayed && element.Enabled) ? element : null;
-                });
-                ((IJavaScriptExecutor)driver).ExecuteScript("arguments[0].scrollIntoView(true);", button1);
-                wait.Until(driver =>
-                {
-                    return button1.Displayed && button1.Enabled && !IsElementCovered(driver, button1); ;
-                });
-                if (button1 == null)
-                {
-                    driver.Quit();
-                    RegAction(driver, configInfo, personalInfo);
+                        // Lấy chiều cao của trang (scrollHeight) bằng JavaScript
+                        IJavaScriptExecutor jsExecutor = (IJavaScriptExecutor)driver;
+                        var scrollHeight = (long)jsExecutor.ExecuteScript("return document.body.scrollHeight");
+                        // Tính vị trí cần cuộn (50% chiều cao trang)
+                        long scrollPosition = scrollHeight / 2;
+                        // Cuộn xuống 50% trang
+                        jsExecutor.ExecuteScript($"window.scrollTo(0, {scrollPosition});");
+
+                        //buoc 1 - chon
+                        var btnRegClassname = "btnGruen";
+                        var button1 = wait.Until(driver =>
+                        {
+                            var element = driver.FindElement(By.ClassName(btnRegClassname));
+                            return (element.Displayed && element.Enabled) ? element : null;
+                        });
+                        if (!button1.Displayed)
+                        {
+                            ((IJavaScriptExecutor)driver).ExecuteScript("arguments[0].scrollIntoView(true);", button1);
+                        }
+                        wait.Until(driver =>
+                        {
+                            return button1.Displayed && button1.Enabled && !IsElementCovered(driver, button1);
+                        });
+                        if (button1 != null)
+                        {
+                            check = true;
+                        }
+                        actions.MoveToElement(button1).Click().Perform();
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine("CheckActive" + ex.ToString());
+                    }
                 }
-                Actions actions = new Actions(driver);
-                actions.MoveToElement(button1).Perform();
-                //actions.MoveToElement(button1).Click().Perform();
-                button1.Click();
-
-
                 //buoc 2 - next
                 var btnNextClassname = "cs-button--arrow_next";
                 var button2 = wait.Until(driver =>
@@ -359,30 +385,30 @@ namespace Bussiness.Business
                     var element = driver.FindElement(By.ClassName(btnNextClassname));
                     return (element.Displayed && element.Enabled) ? element : null;
                 });
-                ((IJavaScriptExecutor)driver).ExecuteScript("arguments[0].scrollIntoView(true);", button2);
+                if (!button2.Displayed)
+                {
+                    ((IJavaScriptExecutor)driver).ExecuteScript("arguments[0].scrollIntoView(true);", button2);
+                }
                 wait.Until(driver =>
                 {
                     return button2.Displayed && button2.Enabled;
                 });
-                Thread.Sleep(200);
+
                 //reading
                 if (!personalInfo.IsReading)
                 {
                     UncheckCheckbox(driver, " reading ");
                 }
-                Thread.Sleep(200);
                 //listening
                 if (!personalInfo.IsListening)
                 {
                     UncheckCheckbox(driver, " listening ");
                 }
-                Thread.Sleep(200);
                 //writing
                 if (!personalInfo.IsWriting)
                 {
                     UncheckCheckbox(driver, " writing ");
                 }
-                Thread.Sleep(200);
                 //speaking
                 if (!personalInfo.IsSpeaking)
                 {
@@ -398,7 +424,10 @@ namespace Bussiness.Business
                     var element = driver.FindElement(By.CssSelector(btnBookMySelftSelector));
                     return (element.Displayed && element.Enabled) ? element : null;
                 });
-                ((IJavaScriptExecutor)driver).ExecuteScript("arguments[0].scrollIntoView(true);", button3);
+                if (!button3.Displayed)
+                {
+                    ((IJavaScriptExecutor)driver).ExecuteScript("arguments[0].scrollIntoView(true);", button3);
+                }
                 wait.Until(driver =>
                 {
                     return button3.Displayed && button3.Enabled;
@@ -436,13 +465,15 @@ namespace Bussiness.Business
                     var element = driver.FindElement(By.CssSelector(btnLoginSelector));
                     return (element.Displayed && element.Enabled) ? element : null;
                 });
-                ((IJavaScriptExecutor)driver).ExecuteScript("arguments[0].scrollIntoView(true);", button4);
+                if (!button4.Displayed)
+                {
+                    ((IJavaScriptExecutor)driver).ExecuteScript("arguments[0].scrollIntoView(true);", button4);
+                }
                 wait.Until(driver =>
                 {
                     return button4.Displayed && button4.Enabled;
                 });
                 button4.Click();
-                Thread.Sleep(200);
                 //buoc 5 thanh toan - continue 1
                 var btnPaymentContinueSelector = ".cs-checkout__bottom button.cs-button--arrow_next";
                 var button5 = wait.Until(driver =>
@@ -450,20 +481,25 @@ namespace Bussiness.Business
                     var element = driver.FindElement(By.CssSelector(btnPaymentContinueSelector));
                     return (element.Displayed && element.Enabled) ? element : null;
                 });
-                ((IJavaScriptExecutor)driver).ExecuteScript("arguments[0].scrollIntoView(true);", button5);
+                if (!button5.Displayed)
+                {
+                    ((IJavaScriptExecutor)driver).ExecuteScript("arguments[0].scrollIntoView(true);", button5);
+                }
                 wait.Until(driver =>
                 {
                     return button5.Displayed && button5.Enabled;
                 });
                 button5.Click();
-                Thread.Sleep(200);
                 //buoc 5 thanh toan - continue 2
                 var button6 = wait.Until(driver =>
                 {
                     var element = driver.FindElement(By.CssSelector(btnPaymentContinueSelector));
                     return (element.Displayed && element.Enabled) ? element : null;
                 });
-                ((IJavaScriptExecutor)driver).ExecuteScript("arguments[0].scrollIntoView(true);", button6);
+                if (!button6.Displayed)
+                {
+                    ((IJavaScriptExecutor)driver).ExecuteScript("arguments[0].scrollIntoView(true);", button6);
+                }
                 wait.Until(driver =>
                 {
                     return button6.Displayed && button6.Enabled;
@@ -475,20 +511,19 @@ namespace Bussiness.Business
 
                 driver.Manage().Cookies.DeleteAllCookies();
                 //driver.Quit();
-
             }
             catch(Exception ex)
             {
+                Console.WriteLine(personalInfo.Username + ex.ToString());
                 driver.Manage().Cookies.DeleteAllCookies();
-                driver.Quit();
-                throw;
+                RegAction(driver, configInfo, personalInfo);
             }
         }
 
         public bool CheckActive(ConfigInfo configInfo)
         {
-            string chromeProfilePath = "D:\\ChromeProfile"; // Thay đổi đường dẫn nếu cần
-            string chromeProfileName = "Default"; // Thay đổi đường dẫn nếu cần
+            string chromeProfilePath = "D:\\ChromeProfile\\UserData3"; // Thay đổi đường dẫn nếu cần
+            string chromeProfileName = "Profile 3"; // Thay đổi đường dẫn nếu cần
             var options = new ChromeOptions();
             //options.AddArgument($"--user-data-dir={chromeProfilePath + "\\" + chromeProfileName}");
             options.AddArgument($"--user-data-dir={chromeProfilePath}");
@@ -507,39 +542,47 @@ namespace Bussiness.Business
                 //Actions actions = new Actions(driver);
                 //actions.SendKeys(Keys.F5).Perform();
 
-                driver.Navigate().Refresh();
-
-                WebDriverWait wait = new WebDriverWait(driver, TimeSpan.FromSeconds(100));
-
-                wait.Until((x) =>
+                try
                 {
-                    return ((IJavaScriptExecutor)driver).ExecuteScript("return document.readyState").Equals("complete");
+                    driver.Navigate().Refresh();
 
-                });
+                    WebDriverWait wait = new WebDriverWait(driver, TimeSpan.FromSeconds(2));
 
-                // Lấy chiều cao của trang (scrollHeight) bằng JavaScript
-                IJavaScriptExecutor jsExecutor = (IJavaScriptExecutor)driver;
-                var scrollHeight = (long)jsExecutor.ExecuteScript("return document.body.scrollHeight");
-                // Tính vị trí cần cuộn (50% chiều cao trang)
-                long scrollPosition = scrollHeight / 2;
-                // Cuộn xuống 50% trang
-                jsExecutor.ExecuteScript($"window.scrollTo(0, {scrollPosition});");
+                    wait.Until((x) =>
+                    {
+                        return ((IJavaScriptExecutor)driver).ExecuteScript("return document.readyState").Equals("complete");
 
-                //buoc 1 - chon
-                var btnRegClassname = "btnGruen";
-                var button1 = wait.Until(driver =>
+                    });
+
+                    // Lấy chiều cao của trang (scrollHeight) bằng JavaScript
+                    IJavaScriptExecutor jsExecutor = (IJavaScriptExecutor)driver;
+                    var scrollHeight = (long)jsExecutor.ExecuteScript("return document.body.scrollHeight");
+                    // Tính vị trí cần cuộn (50% chiều cao trang)
+                    long scrollPosition = scrollHeight / 2;
+                    // Cuộn xuống 50% trang
+                    jsExecutor.ExecuteScript($"window.scrollTo(0, {scrollPosition});");
+
+                    //buoc 1 - chon
+                    var btnRegClassname = "btnGruen";
+                    var button1 = wait.Until(driver =>
+                    {
+                        var element = driver.FindElement(By.ClassName(btnRegClassname));
+                        return (element.Displayed && element.Enabled) ? element : null;
+                    });
+                    ((IJavaScriptExecutor)driver).ExecuteScript("arguments[0].scrollIntoView(true);", button1);
+                    wait.Until(driver =>
+                    {
+                        return button1.Displayed && button1.Enabled && !IsElementCovered(driver, button1); ;
+                    });
+                    if (button1 != null)
+                    {
+                        check = true;
+                    }
+
+                }
+                catch(Exception ex)
                 {
-                    var element = driver.FindElement(By.ClassName(btnRegClassname));
-                    return (element.Displayed && element.Enabled) ? element : null;
-                });
-                ((IJavaScriptExecutor)driver).ExecuteScript("arguments[0].scrollIntoView(true);", button1);
-                wait.Until(driver =>
-                {
-                    return button1.Displayed && button1.Enabled && !IsElementCovered(driver, button1); ;
-                });
-                if (button1 != null)
-                {
-                    check = true;
+                    Console.WriteLine("CheckActive" + ex.ToString());
                 }
             }
             driver.Close();
