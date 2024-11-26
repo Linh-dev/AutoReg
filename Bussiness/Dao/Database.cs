@@ -9,7 +9,8 @@ namespace Bussiness.Dao
         {
             if (client == null)
             {
-                var mongoUrl = "mongodb://localhost:27017/ToolRegGoethe";
+                //var mongoUrl = "mongodb://localhost:27017/ToolRegGoethe";
+                var mongoUrl = "mongodb+srv://baclinh0123:0Un9DIlLGijdhneY@linhdev.md6go.mongodb.net/?retryWrites=true&w=majority&appName=linhdev";
                 //var mongoUrl = BusinessSettings.MongoDBConnectionStrings;
                 client = new MongoClient(mongoUrl);
             }
