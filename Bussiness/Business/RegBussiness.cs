@@ -19,7 +19,7 @@ namespace Bussiness.Business
 {
     public class RegBussiness
     {
-        private DateTime ExpiryDate = DateUtil.StringToDateTime("27/11/2024 9:0:0").Value;
+        private DateTime ExpiryDate = DateUtil.StringToDateTime("27/11/2024 12:0:0").Value;
 
         public static string[] ProxyList = new string[]
         {
