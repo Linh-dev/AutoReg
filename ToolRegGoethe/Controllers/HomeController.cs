@@ -130,19 +130,30 @@ namespace ToolRegGoethe.Controllers
         {
             try
             {
-                var configInfo = ConfigDao.GetInstance().GetById(reqData.IdStr);
-                var pList = PersonalDao.GetInstance().GetByConfigId(configInfo._id).Take(5).ToList();
-                for(var i = 0; i < pList.Count; i++)
-                {
-                    pList[i].IndexA = i;
-                }
                 var regModelList = new List<RegModel>();
+                var configInfo = ConfigDao.GetInstance().GetById(reqData.IdStr);
+                var pList = PersonalDao.GetInstance().GetByConfigId(configInfo._id).ToList();
+                //for(var i = 0; i < pList.Count; i++)
+                //{
+                //    pList[i].IndexA = i;
+                //}
 
                 //mở chrome
                 #region
-                pList.AsParallel().ForAll(info =>
+                //pList.AsParallel().ForAll(info =>
+                //{
+                //    var d = new RegBussiness().OpenNewChrome(configInfo, info, "");
+                //    RegModel model = new RegModel();
+                //    model.Driver = d;
+                //    model.Info = info;
+                //    lock (lockObject)
+                //    {
+                //        regModelList.Add(model);
+                //    }
+                //});
+                pList.ForEach(info =>
                 {
-                    var d = new RegBussiness().OpenNewChrome(configInfo, info, RegBussiness.ProxyList[info.IndexA]);
+                    var d = new RegBussiness().OpenNewChrome(configInfo, info, "");
                     RegModel model = new RegModel();
                     model.Driver = d;
                     model.Info = info;
@@ -155,7 +166,7 @@ namespace ToolRegGoethe.Controllers
 
                 ////check
                 //var check = true;
-                var semaphore = new SemaphoreSlim(5);
+                var semaphore = new SemaphoreSlim(20);
                 //thuc hien dang ký
                 await Parallel.ForEachAsync(regModelList, async (item, cancellationToken) =>
                 {

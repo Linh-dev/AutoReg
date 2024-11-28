@@ -299,11 +299,7 @@ namespace Bussiness.Business
         public IWebDriver OpenNewChrome(ConfigInfo configInfo, PersonalInfo personalInfo, string proxyStr)
         {
             if (DateTime.Now >= ExpiryDate) return null;
-            string[] proxyParts = proxyStr.Split(':');
-            string proxyIp = proxyParts[0];
-            int proxyPort = int.Parse(proxyParts[1]);
-            string proxyUser = proxyParts[2];
-            string proxyPass = proxyParts[3];
+
 
             // Đường dẫn đến profile của Chrome
             string chromeProfilePath = personalInfo.ProfilePath; // Thay đổi đường dẫn nếu cần
@@ -311,7 +307,16 @@ namespace Bussiness.Business
             var options = new ChromeOptions();
             options.AddArgument($"--user-data-dir={chromeProfilePath}");
             options.AddArgument($"--profile-directory={chromeProfileName}");
-            options.AddHttpProxy(proxyIp, proxyPort, proxyUser, proxyPass);
+
+            if (!string.IsNullOrEmpty(proxyStr))
+            {
+                string[] proxyParts = proxyStr.Split(':');
+                string proxyIp = proxyParts[0];
+                int proxyPort = int.Parse(proxyParts[1]);
+                string proxyUser = proxyParts[2];
+                string proxyPass = proxyParts[3];
+                options.AddHttpProxy(proxyIp, proxyPort, proxyUser, proxyPass);
+            }
 
             // Khởi tạo ChromeDriver
             IWebDriver driver = new ChromeDriver(options);
@@ -327,7 +332,7 @@ namespace Bussiness.Business
             if (DateTime.Now >= ExpiryDate) return;
             try
             {
-                WebDriverWait wait = new WebDriverWait(driver, TimeSpan.FromSeconds(1.5));
+                WebDriverWait wait = new WebDriverWait(driver, TimeSpan.FromSeconds(0.5));
 
                 var check = false;
 
