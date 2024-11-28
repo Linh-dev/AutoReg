@@ -19,7 +19,7 @@ namespace Bussiness.Business
 {
     public class RegBussiness
     {
-        private DateTime ExpiryDate = DateUtil.StringToDateTime("27/11/2024 12:0:0").Value;
+        private DateTime ExpiryDate = DateUtil.StringToDateTime("29/11/2024 12:0:0").Value;
 
         public static string[] ProxyList = new string[]
         {
@@ -299,11 +299,7 @@ namespace Bussiness.Business
         public IWebDriver OpenNewChrome(ConfigInfo configInfo, PersonalInfo personalInfo, string proxyStr)
         {
             if (DateTime.Now >= ExpiryDate) return null;
-            string[] proxyParts = proxyStr.Split(':');
-            string proxyIp = proxyParts[0];
-            int proxyPort = int.Parse(proxyParts[1]);
-            string proxyUser = proxyParts[2];
-            string proxyPass = proxyParts[3];
+
 
             // Đường dẫn đến profile của Chrome
             string chromeProfilePath = personalInfo.ProfilePath; // Thay đổi đường dẫn nếu cần
@@ -311,7 +307,16 @@ namespace Bussiness.Business
             var options = new ChromeOptions();
             options.AddArgument($"--user-data-dir={chromeProfilePath}");
             options.AddArgument($"--profile-directory={chromeProfileName}");
-            options.AddHttpProxy(proxyIp, proxyPort, proxyUser, proxyPass);
+
+            if (!string.IsNullOrEmpty(proxyStr))
+            {
+                string[] proxyParts = proxyStr.Split(':');
+                string proxyIp = proxyParts[0];
+                int proxyPort = int.Parse(proxyParts[1]);
+                string proxyUser = proxyParts[2];
+                string proxyPass = proxyParts[3];
+                options.AddHttpProxy(proxyIp, proxyPort, proxyUser, proxyPass);
+            }
 
             // Khởi tạo ChromeDriver
             IWebDriver driver = new ChromeDriver(options);
@@ -327,7 +332,7 @@ namespace Bussiness.Business
             if (DateTime.Now >= ExpiryDate) return;
             try
             {
-                WebDriverWait wait = new WebDriverWait(driver, TimeSpan.FromSeconds(1.5));
+                WebDriverWait wait = new WebDriverWait(driver, TimeSpan.FromSeconds(0.5));
 
                 var check = false;
 
@@ -348,7 +353,7 @@ namespace Bussiness.Business
                         IJavaScriptExecutor jsExecutor = (IJavaScriptExecutor)driver;
                         var scrollHeight = (long)jsExecutor.ExecuteScript("return document.body.scrollHeight");
                         // Tính vị trí cần cuộn (50% chiều cao trang)
-                        long scrollPosition = scrollHeight / 2;
+                        long scrollPosition = scrollHeight / 3;
                         // Cuộn xuống 50% trang
                         jsExecutor.ExecuteScript($"window.scrollTo(0, {scrollPosition});");
 
@@ -371,13 +376,14 @@ namespace Bussiness.Business
                         {
                             check = true;
                         }
-                        actions.MoveToElement(button1).Click().Perform();
+                        button1.Click();
                     }
                     catch (Exception ex)
                     {
                         Console.WriteLine("CheckActive" + ex.ToString());
                     }
                 }
+
                 //buoc 2 - next
                 var btnNextClassname = "cs-button--arrow_next";
                 var button2 = wait.Until(driver =>
