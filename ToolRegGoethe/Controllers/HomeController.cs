@@ -133,14 +133,25 @@ namespace ToolRegGoethe.Controllers
                 var regModelList = new List<RegModel>();
                 var configInfo = ConfigDao.GetInstance().GetById(reqData.IdStr);
                 var pList = PersonalDao.GetInstance().GetByConfigId(configInfo._id).ToList();
-                //for(var i = 0; i < pList.Count; i++)
-                //{
-                //    pList[i].IndexA = i;
-                //}
-
+                for (var i = 0; i < pList.Count; i++)
+                {
+                    pList[i].IndexA = i;
+                }
                 //mở chrome
                 #region
-                //pList.AsParallel().ForAll(info =>
+                pList.AsParallel().ForAll(info =>
+                {
+                    //var d = new RegBussiness().OpenNewChrome(configInfo, info, "");
+                    var d = new RegBussiness().OpenNewChrome(configInfo, info, RegBussiness.ProxyList[info.IndexA]);
+                    RegModel model = new RegModel();
+                    model.Driver = d;
+                    model.Info = info;
+                    lock (lockObject)
+                    {
+                        regModelList.Add(model);
+                    }
+                });
+                //pList.ForEach(info =>
                 //{
                 //    var d = new RegBussiness().OpenNewChrome(configInfo, info, "");
                 //    RegModel model = new RegModel();
@@ -151,17 +162,6 @@ namespace ToolRegGoethe.Controllers
                 //        regModelList.Add(model);
                 //    }
                 //});
-                pList.ForEach(info =>
-                {
-                    var d = new RegBussiness().OpenNewChrome(configInfo, info, "");
-                    RegModel model = new RegModel();
-                    model.Driver = d;
-                    model.Info = info;
-                    lock (lockObject)
-                    {
-                        regModelList.Add(model);
-                    }
-                });
                 #endregion
 
                 ////check
@@ -210,7 +210,8 @@ namespace ToolRegGoethe.Controllers
                 var personalInfo = PersonalDao.GetInstance().GetById(reqData.IdStr);
                 var configInfo = ConfigDao.GetInstance().GetById(personalInfo.ConfigId);
 
-                var d = new RegBussiness().OpenNewChrome(configInfo, personalInfo, RegBussiness.ProxyList[3]);
+                //var d = new RegBussiness().OpenNewChrome(configInfo, personalInfo, "");
+                var d = new RegBussiness().OpenNewChrome(configInfo, personalInfo, RegBussiness.ProxyList[0]);
 
                 new RegBussiness().RegAction(d, configInfo, personalInfo);
 

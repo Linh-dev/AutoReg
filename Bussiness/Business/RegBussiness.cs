@@ -19,7 +19,7 @@ namespace Bussiness.Business
 {
     public class RegBussiness
     {
-        private DateTime ExpiryDate = DateUtil.StringToDateTime("27/11/2024 12:0:0").Value;
+        private DateTime ExpiryDate = DateUtil.StringToDateTime("29/11/2024 12:0:0").Value;
 
         public static string[] ProxyList = new string[]
         {
@@ -353,7 +353,7 @@ namespace Bussiness.Business
                         IJavaScriptExecutor jsExecutor = (IJavaScriptExecutor)driver;
                         var scrollHeight = (long)jsExecutor.ExecuteScript("return document.body.scrollHeight");
                         // Tính vị trí cần cuộn (50% chiều cao trang)
-                        long scrollPosition = scrollHeight / 2;
+                        long scrollPosition = scrollHeight / 3;
                         // Cuộn xuống 50% trang
                         jsExecutor.ExecuteScript($"window.scrollTo(0, {scrollPosition});");
 
@@ -383,6 +383,7 @@ namespace Bussiness.Business
                         Console.WriteLine("CheckActive" + ex.ToString());
                     }
                 }
+
                 //buoc 2 - next
                 var btnNextClassname = "cs-button--arrow_next";
                 var button2 = wait.Until(driver =>
