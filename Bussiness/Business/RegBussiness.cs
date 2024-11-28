@@ -376,7 +376,7 @@ namespace Bussiness.Business
                         {
                             check = true;
                         }
-                        actions.MoveToElement(button1).Click().Perform();
+                        button1.Click();
                     }
                     catch (Exception ex)
                     {
