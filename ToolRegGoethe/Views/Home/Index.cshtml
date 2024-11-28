@@ -20,6 +20,7 @@
                         <th scope="col">Tên</th>
                         <th scope="col">Link</th>
                         <th scope="col">Thời gian thực hiện</th>
+                        <th scope="col">Thời gian tạo</th>
                         <th scope="col">Số lượng</th>
                         <th scope="col">Thành công</th>
                         <th scope="col">Thất bại</th>
@@ -32,7 +33,7 @@
                             <span ng-bind="$index+1"></span>
                         </td>
                         <td>
-                            <i class="fa-solid fa-delete-left" ng-click="showDeleteModal($event,x)"></i>
+                            @* <i class="fa-solid fa-delete-left" ng-click="showDeleteModal($event,x)"></i> *@
                         </td>
 
                         <td>
@@ -43,6 +44,9 @@
                         </td>
                         <td>
                             <span ng-bind="x.startTimeStr"></span>
+                        </td>
+                        <td>
+                            <span ng-bind="x.createdDateStr"></span>
                         </td>
                         <td>
                             <span ng-bind="x.countPersonal"></span>
