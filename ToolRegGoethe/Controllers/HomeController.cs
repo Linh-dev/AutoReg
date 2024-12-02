@@ -132,6 +132,7 @@ namespace ToolRegGoethe.Controllers
             {
                 var regModelList = new List<RegModel>();
                 var configInfo = ConfigDao.GetInstance().GetById(reqData.IdStr);
+                configInfo.Link = "https://www.goethe.de/ins/th/en/spr/prf/gzsd2.cfm";
                 var pList = PersonalDao.GetInstance().GetByConfigId(configInfo._id).ToList();
                 for (var i = 0; i < pList.Count; i++)
                 {
@@ -141,8 +142,8 @@ namespace ToolRegGoethe.Controllers
                 #region
                 pList.AsParallel().ForAll(info =>
                 {
-                    //var d = new RegBussiness().OpenNewChrome(configInfo, info, "");
-                    var d = new RegBussiness().OpenNewChrome(configInfo, info, RegBussiness.ProxyList[info.IndexA]);
+                    var d = new RegBussiness().OpenNewChrome(configInfo, info, "");
+                    //var d = new RegBussiness().OpenNewChrome(configInfo, info, RegBussiness.ProxyList[info.IndexA]);
                     RegModel model = new RegModel();
                     model.Driver = d;
                     model.Info = info;

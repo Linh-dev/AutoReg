@@ -19,7 +19,7 @@ namespace Bussiness.Business
 {
     public class RegBussiness
     {
-        private DateTime ExpiryDate = DateUtil.StringToDateTime("29/11/2024 12:0:0").Value;
+        private DateTime ExpiryDate = DateUtil.StringToDateTime("03/12/2024 12:0:0").Value;
 
         public static string[] ProxyList = new string[]
         {
@@ -399,7 +399,6 @@ namespace Bussiness.Business
                 {
                     return button2.Displayed && button2.Enabled;
                 });
-
                 //reading
                 if (!personalInfo.IsReading)
                 {
@@ -522,7 +521,6 @@ namespace Bussiness.Business
             {
                 Console.WriteLine(personalInfo.Username + ex.ToString());
                 driver.Manage().Cookies.DeleteAllCookies();
-                RegAction(driver, configInfo, personalInfo);
             }
         }
 

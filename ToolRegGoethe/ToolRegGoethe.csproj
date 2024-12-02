@@ -26,9 +26,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Reference Include="Bussiness">
-      <HintPath>..\Bussiness\bin\Debug\net8.0\Bussiness.dll</HintPath>
-    </Reference>
+    <ProjectReference Include="..\Bussiness\Bussiness.csproj" />
   </ItemGroup>
 
 </Project>
