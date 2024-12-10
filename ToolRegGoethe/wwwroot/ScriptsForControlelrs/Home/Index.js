@@ -50,6 +50,12 @@ app.controller('homeIndexCtrl', function ($scope, $mdDialog, $http, $timeout, $t
             });
     }
 
+    $scope.cancel = function () {
+        $http.post("/Home/Cancel")
+            .then(function (rs) {
+            });
+    }
+
     $scope.showDeleteModal = function (ev, obj) {
         $mdDialog.show({
             controller: ConfirmController,

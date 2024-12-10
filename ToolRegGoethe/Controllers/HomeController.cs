@@ -125,14 +125,13 @@ namespace ToolRegGoethe.Controllers
         }
 
         private object lockObject = new object();
+        public static List<RegModel> regModelList = new List<RegModel>();
         [HttpPost]
         public async Task<JsonResult> StartReg([FromBody] BaseRequest reqData)
         {
             try
             {
-                var regModelList = new List<RegModel>();
                 var configInfo = ConfigDao.GetInstance().GetById(reqData.IdStr);
-                configInfo.Link = "https://www.goethe.de/ins/th/en/spr/prf/gzsd2.cfm";
                 var pList = PersonalDao.GetInstance().GetByConfigId(configInfo._id).ToList();
                 for (var i = 0; i < pList.Count; i++)
                 {
@@ -165,32 +164,58 @@ namespace ToolRegGoethe.Controllers
                 //});
                 #endregion
 
-                ////check
-                //var check = true;
-                var semaphore = new SemaphoreSlim(20);
-                //thuc hien dang ký
-                await Parallel.ForEachAsync(regModelList, async (item, cancellationToken) =>
+                regModelList.AsParallel().ForAll(item =>
                 {
-                    await semaphore.WaitAsync(cancellationToken); // Kiểm soát luồng
-
-                    try
-                    {
-                        new RegBussiness().RegAction(item.Driver, configInfo, item.Info);
-                    }
-                    catch (OperationCanceledException)
-                    {
-                        Console.WriteLine($"Processing of {item.Driver} was canceled after 5 seconds.");
-                    }
-                    finally
-                    {
-                        semaphore.Release(); // Giải phóng luồng
-                    }
+                    new RegBussiness().RegAction(item.Driver, configInfo, item.Info);
                 });
 
                 return Json(new
                 {
                     ReturnCode = 1,
                     Message = "Thành công"
+                });
+            }
+            catch (Exception ex)
+            {
+                return Json(new
+                {
+                    ReturnCode = 0,
+                    Message = "Lỗi"
+                });
+            }
+        }
+
+        [HttpPost]
+        public async Task<JsonResult> Cancel()
+        {
+            try
+            {
+                if(regModelList != null && regModelList.Count > 0)
+                {
+                    var semaphore = new SemaphoreSlim(20);
+                    //thuc hien dang ký
+                    await Parallel.ForEachAsync(regModelList, async (item, cancellationToken) =>
+                    {
+                        await semaphore.WaitAsync(cancellationToken); // Kiểm soát luồng
+
+                        try
+                        {
+                            item.Driver.Quit();
+                        }
+                        catch (OperationCanceledException)
+                        {
+                            Console.WriteLine($"Processing of {item.Driver} was canceled after 5 seconds.");
+                        }
+                        finally
+                        {
+                            semaphore.Release(); // Giải phóng luồng
+                        }
+                    });
+                }
+                return Json(new
+                {
+                    ReturnCode = 0,
+                    Message = "ok"
                 });
             }
             catch (Exception ex)
@@ -211,8 +236,8 @@ namespace ToolRegGoethe.Controllers
                 var personalInfo = PersonalDao.GetInstance().GetById(reqData.IdStr);
                 var configInfo = ConfigDao.GetInstance().GetById(personalInfo.ConfigId);
 
-                //var d = new RegBussiness().OpenNewChrome(configInfo, personalInfo, "");
-                var d = new RegBussiness().OpenNewChrome(configInfo, personalInfo, RegBussiness.ProxyList[0]);
+                var d = new RegBussiness().OpenNewChrome(configInfo, personalInfo, "");
+                //var d = new RegBussiness().OpenNewChrome(configInfo, personalInfo, RegBussiness.ProxyList[0]);
 
                 new RegBussiness().RegAction(d, configInfo, personalInfo);
 

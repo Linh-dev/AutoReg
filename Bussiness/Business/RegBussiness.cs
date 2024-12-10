@@ -19,7 +19,7 @@ namespace Bussiness.Business
 {
     public class RegBussiness
     {
-        private DateTime ExpiryDate = DateUtil.StringToDateTime("03/12/2024 12:0:0").Value;
+        private DateTime ExpiryDate = DateUtil.StringToDateTime("04/12/2024 12:0:0").Value;
 
         public static string[] ProxyList = new string[]
         {
@@ -332,7 +332,7 @@ namespace Bussiness.Business
             if (DateTime.Now >= ExpiryDate) return;
             try
             {
-                WebDriverWait wait = new WebDriverWait(driver, TimeSpan.FromSeconds(0.5));
+                WebDriverWait wait = new WebDriverWait(driver, TimeSpan.FromSeconds(2));
 
                 var check = false;
 
@@ -341,7 +341,7 @@ namespace Bussiness.Business
                     Actions actions = new Actions(driver);
                     try
                     {
-                        driver.Navigate().GoToUrl(configInfo.Link);
+                        driver.Navigate().Refresh();
 
                         wait.Until((x) =>
                         {
@@ -376,7 +376,7 @@ namespace Bussiness.Business
                         {
                             check = true;
                         }
-                        button1.Click();
+                        actions.MoveToElement(button1).Click().Perform();
                     }
                     catch (Exception ex)
                     {
@@ -399,6 +399,7 @@ namespace Bussiness.Business
                 {
                     return button2.Displayed && button2.Enabled;
                 });
+
                 //reading
                 if (!personalInfo.IsReading)
                 {
